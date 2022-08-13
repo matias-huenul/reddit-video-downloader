@@ -1,0 +1,89 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: Reddit Video Downloader
+Parameters:
+  pTelegramAPIToken:
+    Type: String
+    Description: Telegram API Token
+Resources:
+  rLambdaRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName:
+        Fn::Sub: lambda-reddit-video-downloader-role
+      AssumeRolePolicyDocument:
+        Statement:
+          - Action:
+            - sts:AssumeRole
+            Effect: Allow
+            Principal:
+              Service:
+              - lambda.amazonaws.com
+        Version: 2012-10-17
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/AWSLambdaExecute
+        - arn:aws:iam::aws:policy/AmazonS3FullAccess
+      Path: /
+  rLambdaRedditVideoDownloader:
+    Type: AWS::Lambda::Function
+    Properties:
+      Code: lambda-downloader-package.zip
+      Runtime: python3.7
+      FunctionName: lambda-reddit-video-downloader
+      Description: Reddit Video Downloader Lambda Function
+      Handler: lambda_function.lambda_handler
+      Environment:
+        Variables:
+          TELEGRAM_API_TOKEN: !Ref pTelegramAPIToken
+      Timeout: 180
+      Role:
+      Role:
+        Fn::GetAtt:
+          - rLambdaRole
+          - Arn
+  rLambdaRedditVideoDownloaderCaller:
+    Type: AWS::Lambda::Function
+    Properties:
+      Code: lambda-caller-package.zip
+      Runtime: python3.7
+      FunctionName: lambda-reddit-video-downloader-caller
+      Description: Reddit Video Downloader Caller Lambda Function
+      Handler: lambda_function.lambda_handler
+      Timeout: 180
+      Role:
+        Fn::GetAtt:
+          - rLambdaRole
+          - Arn
+  rLambdaInvokePermissionCaller:
+    Type: AWS::Lambda::Permission
+    Properties:
+      FunctionName: !GetAtt rLambdaRedditVideoDownloader.Arn
+      Action: lambda:InvokeFunction
+      Principal: !GetAtt rLambdaRole.Arn
+  rApiGatewayRest:
+    Type: AWS::ApiGateway::RestApi
+    Properties: 
+      Description: REST API for Reddit Video Downloader Webhook
+      Name: Reddit Video Downloader Webhook
+  rApiGatewayMethod:
+    Type: AWS::ApiGateway::Method
+    Properties:
+      HttpMethod: POST
+      ResourceId: !GetAtt rApiGatewayRest.RootResourceId
+      RestApiId: !Ref rApiGatewayRest
+      AuthorizationType: NONE
+      Integration:
+        Type: AWS_PROXY
+        IntegrationHttpMethod: POST
+        Uri: !Sub
+          - arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${Arn}/invocations
+          - Arn:
+              Fn::GetAtt:
+              - rLambdaRedditVideoDownloaderCaller
+              - Arn
+  rLambdaInvokePermissionApiGateway:
+    Type: AWS::Lambda::Permission
+    Properties:
+      FunctionName: !GetAtt rLambdaRedditVideoDownloaderCaller.Arn
+      Action: lambda:InvokeFunction
+      Principal: apigateway.amazonaws.com
+      SourceArn: !Sub "arn:aws:execute-api:${AWS::Region}:${AWS::AccountId}:${rApiGatewayRest}/*/POST/"
