@@ -11,6 +11,9 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       -
+        name: Install packages
+        run: sudo apt-get install -y zip jq
+      -
         name: Checkout repository
         uses: actions/checkout@v3
       -
@@ -20,4 +23,10 @@ jobs:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: ${{ secrets.AWS_REGION }}
-      - run: aws s3 ls
+      -
+        name: Run deployment script
+        env:
+          AWS_ACCOUNT_ID: ${{ secrets.AWS_ACCOUNT_ID }}
+          AWS_REGION: ${{ secrets.AWS_REGION }}
+          TELEGRAM_API_TOKEN: ${{ secrets.TELEGRAM_API_TOKEN }}
+        run: bash deploy.sh

@@ -12,14 +12,14 @@ check_status() {
     echo -e " [${GREEN}OK${ENDCOLOR}]"
 }
 
-AWS_REGION=$(jq -r '.["aws_region"]' config.json)
-AWS_PROFILE=$(jq -r '.["aws_profile"]' config.json)
+# AWS_REGION=$(jq -r '.["aws_region"]' config.json)
+AWS_PROFILE="default"
 STACK_NAME="reddit-video-downloader"
 TEMPLATE="template.yaml"
 TEMPLATE_PACKAGED="template-packaged.yaml"
 API_GATEWAY_STAGE="dev"
-S3_ARTIFACTS_BUCKET=$(jq -r '.["s3_artifacts_bucket"]' config.json)
-TELEGRAM_API_TOKEN=$(jq -r '.["telegram_api_token"]' config.json)
+S3_ARTIFACTS_BUCKET="cloudformation-stacks-$AWS_ACCOUNT_ID-$AWS_REGION"
+# TELEGRAM_API_TOKEN=$(jq -r '.["telegram_api_token"]' config.json)
 
 echo -n "Creating deployment package for lambda-caller..."
 
