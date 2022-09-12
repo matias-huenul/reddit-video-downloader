@@ -13,7 +13,7 @@ check_status() {
 }
 
 # AWS_REGION=$(jq -r '.["aws_region"]' config.json)
-AWS_PROFILE="default"
+# AWS_PROFILE="default"
 STACK_NAME="reddit-video-downloader"
 TEMPLATE="template.yaml"
 TEMPLATE_PACKAGED="template-packaged.yaml"
@@ -50,8 +50,7 @@ aws cloudformation package \
     --s3-bucket $S3_ARTIFACTS_BUCKET \
     --s3-prefix $STACK_NAME \
     --output-template-file $TEMPLATE_PACKAGED \
-    --region $AWS_REGION \
-    --profile $AWS_PROFILE 2>&1 >/dev/null
+    --region $AWS_REGION 2>&1 >/dev/null
 
 check_status
 
@@ -62,8 +61,7 @@ aws cloudformation deploy \
     --template-file $TEMPLATE_PACKAGED \
     --parameter-overrides pTelegramAPIToken=$TELEGRAM_API_TOKEN \
     --capabilities CAPABILITY_NAMED_IAM \
-    --region $AWS_REGION \
-    --profile $AWS_PROFILE 2>&1 >/dev/null
+    --region $AWS_REGION 2>&1 >/dev/null
 
 check_status
 
@@ -76,14 +74,12 @@ echo -n "Deploying API..."
 REST_API_ID=$(aws cloudformation describe-stack-resource \
     --stack-name $STACK_NAME \
     --logical-resource-id rApiGatewayRest \
-    --region $AWS_REGION \
-    --profile $AWS_PROFILE | jq -r '.["StackResourceDetail"]["PhysicalResourceId"]')
+    --region $AWS_REGION | jq -r '.["StackResourceDetail"]["PhysicalResourceId"]')
 
 aws apigateway create-deployment \
     --rest-api-id $REST_API_ID \
     --stage-name $API_GATEWAY_STAGE \
-    --region $AWS_REGION \
-    --profile $AWS_PROFILE 2>&1 >/dev/null
+    --region $AWS_REGION 2>&1 >/dev/null
 
 check_status
 
