@@ -81,7 +81,7 @@ def run_bot(token, message, aws_request_id):
             f"{telegram_api_url}/sendMessage",
             data={
                 "chat_id": message_chat_id,
-                "text": "Hi! Send me the link to the reddit post "
+                "text": "Hello! Send me the link to the reddit post "
                     + "containing the video you want to download."
             }
         )
