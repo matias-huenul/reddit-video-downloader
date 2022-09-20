@@ -82,7 +82,7 @@ def run_bot(token, message, aws_request_id):
             data={
                 "chat_id": message_chat_id,
                 "text": "Hello! Send me the link to the reddit post "
-                    + "containing the video you want to download."
+                    + "containing the video you wish to download."
             }
         )
 
